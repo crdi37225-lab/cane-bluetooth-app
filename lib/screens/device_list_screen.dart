@@ -8,44 +8,43 @@ class DeviceListScreen extends StatefulWidget {
 
 class _DeviceListScreenState extends State<DeviceListScreen> {
   FlutterBlue flutterBlue = FlutterBlue.instance;
-  List<BluetoothDevice> devicesList = [];
+  List<BluetoothDevice> devicesList = new List<BluetoothDevice>();
   @override
   void initState() {
     super.initState();
-    flutterBlue.scan().listen((scanResult) {
-      if (!devicesList.contains(scanResult.device)) {
+    flutterBlue.scanResults.listen((results) {
+      for (ScanResult r in results) {
         setState(() {
-          devicesList.add(scanResult.device);
+          if (!devicesList.contains(r.device)) {
+            devicesList.add(r.device);
+          }
         });
       }
     });
+    flutterBlue.startScan();
+  }
+
+  @override
+  void dispose() {
+    flutterBlue.stopScan();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Bluetooth Device List'),
-      ),
+      appBar: AppBar(title: Text('Bluetooth Devices')), 
       body: ListView.builder(
         itemCount: devicesList.length,
         itemBuilder: (context, index) {
           return ListTile(
-            title: Text(devicesList[index].name.isNotEmpty ? devicesList[index].name : 'Unknown device'),
+            title: Text(devicesList[index].name.isNotEmpty ? devicesList[index].name : 'Unknown Device'),
             subtitle: Text(devicesList[index].id.toString()),
-            onTap: () async {
-              await devicesList[index].connect();
-              // Navigate to another screen or show connection status
+            onTap: () {
+              // Handle device tap
             },
           );
         },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Optionally add functionality to stop scanning
-        },
-        child: Icon(Icons.search),
-        tooltip: 'Scan for devices',
       ),
     );
   }
